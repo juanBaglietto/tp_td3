@@ -48,6 +48,27 @@ void Insertar_al_final(Lista *lista, Info_hijo v) {
    }
 }
 
+/*busca en la pila por el campo pid devuelve 0 si no se encuentra en la lista , si el pid esta en la lista devuelve un pountero al nodo*/
+Info_hijo * Buscar_PID(Lista lista,pid_t pid){
+
+	pNodo nodo = lista;
+
+	if(ListaVacia(lista))
+		printf("Lista vacía\n");
+
+	else {
+		while(nodo) {
+			if(nodo->hijo.pid_hijo==pid){
+				return &(nodo->hijo);
+			}
+			nodo = nodo->siguiente;
+
+		}
+	}
+	return 0;
+
+}
+
 void Borrar_PID(Lista *lista, pid_t pid) {
    pNodo anterior, nodo;
 
@@ -85,7 +106,8 @@ void BorrarLista(Lista *lista) {
 void MostrarLista(Lista lista) {
    pNodo nodo = lista;
 
-   if(ListaVacia(lista)) printf("Lista vacía\n");
+   if(ListaVacia(lista))
+	   printf("Lista vacía\n");
    else {
       while(nodo) {
          printf("(%d) tiempo de vida (%d)\n", nodo->hijo.pid_hijo,nodo->hijo.tiempo_vida);
@@ -93,4 +115,18 @@ void MostrarLista(Lista lista) {
      }
 
    }
+}
+
+void Decremetar_tiempo (Lista lista){
+
+	pNodo nodo = lista;
+
+	while(nodo) {
+		if(nodo->hijo.tiempo_vida>0){
+			nodo->hijo.tiempo_vida=(nodo->hijo.tiempo_vida)-1;
+		}
+		nodo = nodo->siguiente;
+
+	}
+
 }

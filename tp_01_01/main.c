@@ -15,27 +15,44 @@ int *tab_relanzar;
 int  t_vida = 0, t_demora = 0;
 
 
-Lista lista = NULL;
+Lista lista_hijos = NULL;
 
 /*Handler*/
 
 void sigchld_handler() {
 
-	int status,cont=0,i=0;
+	int status;
+	Info_hijo *encontrado;
+
 	pid_t rx_pid;
-	 do
+	do
 	{
 
-	rx_pid = waitpid(-1, &status, WNOHANG|WUNTRACED|WCONTINUED);
-
+		rx_pid = waitpid(-1, &status, WNOHANG|WUNTRACED|WCONTINUED);
 
 
 	}while ((rx_pid == (pid_t)0) && (rx_pid != (pid_t)-1));
 
-//	for (cont = 0; cont < cant_procesos; cont++) {
+	if((encontrado=Buscar_PID(lista_hijos,rx_pid))!=NULL){
+
+		if(encontrado->tiempo_vida==0){
+			printf("(%d) Murio con dignidad mi hijo (%d)\n",pid_padre,rx_pid);
+			Borrar_PID(&lista_hijos,rx_pid);
+		}
+		else{
+			printf("(%d) Murio antes de tiempo mi hijo (%d) le falta vivir (%d)\n",pid_padre,rx_pid,encontrado->tiempo_vida);
+
+		}
+	}
+
+
+}
+
+
+//	 while(ListaVacia(&lista_hijos)!=NULL){
 //
-//		if ((hijos+cont)->pid_hijo== rx_pid) {    //es un proceso hijo
-//			if((hijos+cont)->tiempo_vida==0){
+//		if (lista_hijos->hijo.pid_hijo== rx_pid) {    //verifico que el proceso que envio sigchld es un proceso hijo
+//			if(lista_hijos->hijo.pid_hijo==0){
 //
 //				printf("(%d) Mi hijo %d murio con dignidad\n",pid_padre,rx_pid);
 //				cont_hijos_muertos++;
@@ -52,31 +69,19 @@ void sigchld_handler() {
 //			}
 //
 //		}
-//	}
-
-
-
-}
+//		else{									//si rx_pid no coincide con el pid de este nodo de la lista paso al siguiente nodo
 //
+//			anterior = anterior->siguiente;
+//		}
+
+
+
+
 void  sigalrm_handler(){
-//
-// int cont;
-//
-//
-//	for (cont = 0; cont < cant_procesos; cont++) {
-//
-//		if (ListaVacia(&lista) ){
-//			break;
-//		}
-//		else{
-//			if ((hijos+cont)->tiempo_vida > 0 ) {    //es un proceso hijo
-//
-//				(hijos+cont)->tiempo_vida=(hijos+cont)->tiempo_vida-1;
-//			}
-//
-//		}
-//
-//	}
+
+ 	 Decremetar_tiempo(lista_hijos);
+
+
 }
 
 /*Funciones*/
@@ -149,6 +154,7 @@ pid_t crear_hijo(int tiempo_vida){
 
 	pid_t pid_hijo;
 	pid_t my_pid_hijo;
+	Info_hijo nuevo_hijo;
 
 	pid_hijo=fork();
 
@@ -162,6 +168,15 @@ pid_t crear_hijo(int tiempo_vida){
 		printf("(%d) Adios mundo cruel!\n", my_pid_hijo);
 		exit(1);
 
+	}
+	else  				/*codigo del padre */
+	{
+
+		nuevo_hijo.pid_hijo = pid_hijo;
+		nuevo_hijo.demora = t_demora;
+		nuevo_hijo.tiempo_vida = t_vida;
+
+		Insertar_al_final(&lista_hijos,nuevo_hijo);
 	}
 
 	return	pid_hijo;
@@ -204,10 +219,10 @@ pid_t crear_hijo(int tiempo_vida){
 
 int main(int argc, char const *argv[]) {
 
-	int cont_hijos = 0,cont,cont_demora=0;
-	pid_t pid_hijo_revivido=0;
+	int cont_hijos = 0;
+	//pid_t pid_hijo_revivido=0;
 	pid_t pid_chld;
-	Info_hijo nuevo_hijo;
+
 
 	struct itimerval contador;
 	struct timeval tiempoRepeticion;
@@ -239,11 +254,6 @@ int main(int argc, char const *argv[]) {
 			printf("(%d) se creo un nuevo hijo con numero de PID :%d\n", pid_padre,
 					pid_chld);
 
-			nuevo_hijo.pid_hijo = pid_chld;
-			nuevo_hijo.demora = t_demora;
-			nuevo_hijo.tiempo_vida = t_vida;
-
-			Insertar_al_final(&lista,nuevo_hijo);
 
 			cont_hijos++;
 			usleep(t_demora * 1000);
@@ -263,19 +273,19 @@ int main(int argc, char const *argv[]) {
 
 		if (pid_chld != 0) {
 
-//			while(cont_hijos_muertos < cant_procesos){
-//
-//				//relanzar_procesos();
-//				pause();
-//			}
-			wait(NULL);
+			while(ListaVacia(lista_hijos)==NULL){
+
+				//relanzar_procesos();
+				pause();
+			}
+
 
 			printf("(%d) Tuve %d hijos, murieron todos, que desgracia!\n", pid_padre,
 					cont_hijos);
 
-			printf("Imprimo lista\n");
-			MostrarLista(lista);
-			BorrarLista(&lista);
+			printf("Imprimo lista_hijos\n");
+			MostrarLista(lista_hijos);
+			BorrarLista(&lista_hijos);
 			exit(1);
 
 

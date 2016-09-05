@@ -28,7 +28,7 @@
 #define ERROR 				-1
 #define DIV_DEMORA 			10
 #define T_SEC_REPETICION	0
-#define T_USEC_REPETICION	1100
+#define T_USEC_REPETICION 	950
 
 void sigchld_handler();
 void  sigalrm_handler();
