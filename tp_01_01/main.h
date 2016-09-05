@@ -23,20 +23,25 @@
 #include <linux/soundcard.h>
 #include <errno.h>
 #include <sys/queue.h>
+#include "lista.h"
 
-#define ERROR -1
+#define ERROR 				-1
+#define DIV_DEMORA 			10
+#define T_SEC_REPETICION	0
+#define T_USEC_REPETICION	1100
 
 void sigchld_handler();
 void  sigalrm_handler();
 void int_signals();
 void validar_arg(int argc, char const *argv[]);
-void set_t_repeticon(struct timeval *t_rep, int sec,int usec);
+pid_t crear_hijo(int);
+int relanzar_procesos(void);
 
 /*Varibales globales*/
-typedef struct {
-	pid_t pid_hijo;
-	int tiempo_vida;
-	int demora;
-} Info_hijo;
+
+
+
+
+
 
 #endif /* TP_H_ */
