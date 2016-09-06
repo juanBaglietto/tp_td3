@@ -35,6 +35,6 @@ int ListaVacia(Lista l);
 void BorrarLista(Lista *);
 void MostrarLista(Lista l);
 
-int long_lista(Lista *l);
+int Long_lista(Lista l);
 
 #endif /* LISTA_H_ */

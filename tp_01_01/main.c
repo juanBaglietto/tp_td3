@@ -16,6 +16,7 @@ int  t_vida = 0, t_demora = 0;
 
 
 Lista lista_hijos = NULL;
+Lista lista_revivir_hijos = NULL;
 
 /*Handler*/
 
@@ -23,6 +24,7 @@ void sigchld_handler() {
 
 	int status;
 	Info_hijo *encontrado;
+	Info_hijo nuevo_hijo;
 
 	pid_t rx_pid;
 	do
@@ -41,41 +43,17 @@ void sigchld_handler() {
 		}
 		else{
 			printf("(%d) Murio antes de tiempo mi hijo (%d) le falta vivir (%d)\n",pid_padre,rx_pid,encontrado->tiempo_vida);
+			nuevo_hijo.pid_hijo = 0;
+			nuevo_hijo.demora = 0;
+			nuevo_hijo.tiempo_vida =encontrado->tiempo_vida;
 
+			Insertar_al_final(&lista_revivir_hijos,nuevo_hijo);
+			Borrar_PID(&lista_hijos,rx_pid);
 		}
 	}
 
 
 }
-
-
-//	 while(ListaVacia(&lista_hijos)!=NULL){
-//
-//		if (lista_hijos->hijo.pid_hijo== rx_pid) {    //verifico que el proceso que envio sigchld es un proceso hijo
-//			if(lista_hijos->hijo.pid_hijo==0){
-//
-//				printf("(%d) Mi hijo %d murio con dignidad\n",pid_padre,rx_pid);
-//				cont_hijos_muertos++;
-//			}
-//			else{
-//				printf("(%d) Mi hijo %d antes de tiempo, le falta vivir %d \n",pid_padre,rx_pid,(hijos+cont)->tiempo_vida);
-//				while(*(tab_relanzar+i)!=NULL){ //recorro la tabla hasta la ultima posicion
-//					i++;
-//				}
-//				*(tab_relanzar+i)=(hijos+cont)->tiempo_vida;
-//				printf("(%d) info tabla relanzar tiempo de vida: %d\n",pid_padre,*(tab_relanzar+i));
-//
-//				i=0;
-//			}
-//
-//		}
-//		else{									//si rx_pid no coincide con el pid de este nodo de la lista paso al siguiente nodo
-//
-//			anterior = anterior->siguiente;
-//		}
-
-
-
 
 void  sigalrm_handler(){
 
@@ -164,7 +142,7 @@ pid_t crear_hijo(int tiempo_vida){
 		printf("(%d) Soy un nuevo hijo\n", my_pid_hijo);
 
 
-		usleep(tiempo_vida * 1000); //el timpo de vida enta en ms y usleep usa us
+		usleep(tiempo_vida*1000);
 		printf("(%d) Adios mundo cruel!\n", my_pid_hijo);
 		exit(1);
 
@@ -174,7 +152,7 @@ pid_t crear_hijo(int tiempo_vida){
 
 		nuevo_hijo.pid_hijo = pid_hijo;
 		nuevo_hijo.demora = t_demora;
-		nuevo_hijo.tiempo_vida = t_vida;
+		nuevo_hijo.tiempo_vida = tiempo_vida;
 
 		Insertar_al_final(&lista_hijos,nuevo_hijo);
 	}
@@ -184,117 +162,69 @@ pid_t crear_hijo(int tiempo_vida){
 }
 /*funcion encargada de relazar los proceos que se terminaron antes de tiempo
  * devuelve 0 si no se relanzo ningun proceoso o la contidad de proceoso relanzados */
-//int relanzar_procesos(){
-//
-//	int cant_revividos,indice_hijos,i;
-//	pid_t pid_hijo_revivido;
-//
-//
-//	do{ 							//recorro la tabla de procesos a relanzar
-//		if(*(tab_relanzar+i)==NULL){
-//			return 0;					// si la tabla esta vacia salgo del do while y espero la demora
-//		}
-//		else if(*(tab_relanzar+i)>0){
-//
-//			pid_hijo_revivido = crear_hijo(*(tab_relanzar+i));
-//			printf("(%d) revivi un hijo con pid: %d que le faltaba vivir: %d ms \n",pid_padre,pid_hijo_revivido,*(tab_relanzar+i));
-//			*(tab_relanzar+i)=NULL;// elimino al hijo revivido de la tabla a relanzar
-//			pid_chld=0;
-//			while((hijos+indice_hijos)->pid_hijo!=NULL){
-//				indice_hijos++;
-//			}
-//			(hijos+indice_hijos)->pid_hijo = pid_chld;
-//			(hijos+indice_hijos)->demora = t_demora;
-//			(hijos+indice_hijos)->tiempo_vida = t_vida;
-//			cant_revividos++;
-//			i++;
-//		}
-//
-//	}while(*(tab_relanzar+i)!=NULL && pid_hijo_revivido!=0);
-//	i=0;
-//	return cant_revividos;
-//
-//}
+void relanzar_procesos(){
+
+	pid_t pid_hijo_revivido;
+	pNodo aux=lista_revivir_hijos;
+
+	if((ListaVacia(lista_revivir_hijos))==0){
+		do{
+			pid_hijo_revivido=crear_hijo(aux->hijo.tiempo_vida);
+			printf("(%d) revivi a un hijo con pid %d y tiempo de vida %d \n",pid_padre,pid_hijo_revivido,aux->hijo.tiempo_vida);
+			aux = aux->siguiente;
+		}while(aux!=NULL && pid_hijo_revivido!=0);
+		if(pid_hijo_revivido!=0){
+			BorrarLista(&lista_revivir_hijos);
+		}
+
+	}
+
+
+}
 
 
 int main(int argc, char const *argv[]) {
 
-	int cont_hijos = 0;
-	//pid_t pid_hijo_revivido=0;
 	pid_t pid_chld;
+	int cont_demora=0,cont_hijos=0;
 
-
-	struct itimerval contador;
-	struct timeval tiempoRepeticion;
-
-	pid_padre = getpid(); // pid padre
-
-	//set_t_repeticon(&tiempoRepeticion,0,1000); // creo una señal de alarma cada 1 ms
-
-	tiempoRepeticion.tv_sec=T_SEC_REPETICION;
-	tiempoRepeticion.tv_usec=T_USEC_REPETICION;
-	contador.it_value=tiempoRepeticion;
-	contador.it_interval=tiempoRepeticion;
-
+	pid_padre = getpid();					 // pid padre
 	int_signals();
 	validar_arg(argc,argv);
 
 	cant_procesos = atoi(argv[1]);
-	t_vida = atoi(argv[2]);
+	t_vida = atoi(argv[2]);  				//el timpo de vida enta en ms y usleep usa us
 	t_demora = atoi(argv[3]);
 
-	setitimer (ITIMER_REAL, &contador, 0); // antes de inicial el ciclo de creacion de hijos inicio el contador para que emita la señal alarma cada 1ms
+	ualarm(T_SIGALRM_USEG,T_SIGALRM_USEG);	//seteo para tener una interrpcion por sigalrm cada 1 ms
 
 	do {
-
 		pid_chld = crear_hijo(t_vida);
 
 		if (pid_chld != 0) {
 
-			printf("(%d) se creo un nuevo hijo con numero de PID :%d\n", pid_padre,
-					pid_chld);
-
-
+			printf("(%d) se creo un nuevo hijo con numero de PID :%d\n", pid_padre,pid_chld);
 			cont_hijos++;
-			usleep(t_demora * 1000);
-			//for (cont_demora = 0; cont_demora < DIV_DEMORA; ++cont_demora) {
 
-				//usleep(t_demora * (1000/DIV_DEMORA)); //divido el tiempo de demora para que el padre pueda analizar la tabla para relanzar procesos
-
-				//pid_hijo_revivido=relanzar_procesos();
-
-
-			//}
-
+			for (cont_demora = 0; cont_demora < DIV_DEMORA; ++cont_demora) {
+				usleep(t_demora * (1000/DIV_DEMORA)); //divido el tiempo de demora para que el padre pueda analizar la tabla para relanzar procesos
+				relanzar_procesos();
+			}
 		}
-
-
 	} while (cont_hijos < cant_procesos && pid_chld != 0);
 
-		if (pid_chld != 0) {
-
-			while(ListaVacia(lista_hijos)==NULL){
-
-				//relanzar_procesos();
-				pause();
-			}
-
-
-			printf("(%d) Tuve %d hijos, murieron todos, que desgracia!\n", pid_padre,
-					cont_hijos);
-
-			printf("Imprimo lista_hijos\n");
-			MostrarLista(lista_hijos);
-			BorrarLista(&lista_hijos);
-			exit(1);
-
-
+	if (pid_chld != 0) {
+		while((ListaVacia(lista_hijos))==0){
+			relanzar_procesos();
+			pause();
 		}
-
-
-
-
-
+		printf("(%d) Tuve %d hijos, murieron todos, que desgracia!\n", pid_padre,cont_hijos);
+		printf("Imprimo lista_hijos\n");
+		MostrarLista(lista_hijos);
+		BorrarLista(&lista_hijos);
+		exit(1);
+	}
+	return 0;
 }
 
 

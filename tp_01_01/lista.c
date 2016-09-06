@@ -8,17 +8,19 @@
 /* Devuelve la longitud de una lista */
 #include "lista.h"
 
-int long_lista(Lista *lista){
+int Long_lista(Lista lista){
 
-	 pNodo anterior;
+	pNodo nodo = lista;
 	int n=0;
-	anterior = *lista;
 
-	      while(anterior->siguiente==NULL){
-	         anterior = anterior->siguiente;
-	         ++n;
-	      }
-
+	if(ListaVacia(lista))
+		printf("Lista vacía\n");
+	else {
+		while(nodo) {
+			n++;
+			nodo = nodo->siguiente;
+		}
+	}
 	return n;
 }
 

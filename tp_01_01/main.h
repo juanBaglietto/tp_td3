@@ -15,6 +15,7 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/msg.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
@@ -29,13 +30,14 @@
 #define DIV_DEMORA 			10
 #define T_SEC_REPETICION	0
 #define T_USEC_REPETICION 	950
+#define T_SIGALRM_USEG		950
 
 void sigchld_handler();
 void  sigalrm_handler();
 void int_signals();
 void validar_arg(int argc, char const *argv[]);
 pid_t crear_hijo(int);
-int relanzar_procesos(void);
+void relanzar_procesos(void);
 
 /*Varibales globales*/
 
