@@ -15,6 +15,7 @@ typedef struct {
 	pid_t pid_hijo;
 	int tiempo_vida;
 	int demora;
+	struct timeval hora_creacion;
 } Info_hijo;
 
 typedef struct _nodo {
@@ -28,6 +29,7 @@ typedef tipoNodo *Lista;
 void Insertar_al_final(Lista *lista,  Info_hijo v);
 void Borrar_PID(Lista *l,  pid_t pid);
 Info_hijo * Buscar_PID(Lista lista,pid_t pid);
+int Buscar_Tiempo_faltante(Lista lista,pid_t pid);
 void Decremetar_tiempo(Lista lista);
 
 int ListaVacia(Lista l);

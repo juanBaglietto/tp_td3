@@ -71,6 +71,28 @@ Info_hijo * Buscar_PID(Lista lista,pid_t pid){
 
 }
 
+int Buscar_Tiempo_faltante(Lista lista,pid_t pid){
+
+	pNodo nodo = lista;
+
+	if(ListaVacia(lista)){
+		printf("Lista vacía\n");
+		return 0;
+	}
+
+	else {
+		while(nodo) {
+			if(nodo->hijo.pid_hijo==pid){
+				return nodo->hijo.tiempo_vida;
+			}
+			nodo = nodo->siguiente;
+
+		}
+	}
+	return -1;
+
+}
+
 void Borrar_PID(Lista *lista, pid_t pid) {
    pNodo anterior, nodo;
 
@@ -126,6 +148,10 @@ void Decremetar_tiempo (Lista lista){
 	while(nodo) {
 		if(nodo->hijo.tiempo_vida>0){
 			nodo->hijo.tiempo_vida=(nodo->hijo.tiempo_vida)-1;
+		}
+		else if(nodo->hijo.tiempo_vida==0){
+
+			kill( nodo->hijo.pid_hijo, SIGUSR1 ); //cunado el tiempo de vida del hijo llega a 0 el padre manda una señal para que el hijo termine
 		}
 		nodo = nodo->siguiente;
 

@@ -23,26 +23,27 @@
 #include <sys/ioctl.h>
 #include <linux/soundcard.h>
 #include <errno.h>
-#include <sys/queue.h>
 #include "lista.h"
+#include "debug.h"
+#include "semaforos.h"
 
 #define ERROR 				-1
 #define DIV_DEMORA 			10
-#define T_SEC_REPETICION	0
-#define T_USEC_REPETICION 	950
-#define T_SIGALRM_USEG		950
+#define T_SIGALRM_USEG		1000
+#define	DIV_VIDA            4
+#define NOM_ARCHIVO			"registro.log"
+#define BUFF_SIZE 			1024
 
 void sigchld_handler();
 void  sigalrm_handler();
+void sigusr1_handler();
+void sigalrm_handler_hijos();
 void int_signals();
 void validar_arg(int argc, char const *argv[]);
 pid_t crear_hijo(int);
 void relanzar_procesos(void);
 
 /*Varibales globales*/
-
-
-
 
 
 
