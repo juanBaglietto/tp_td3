@@ -23,6 +23,8 @@
 #include <sys/ioctl.h>
 #include <linux/soundcard.h>
 #include <errno.h>
+#include <unistd.h>
+#include <time.h>
 #include "lista.h"
 #include "debug.h"
 #include "semaforos.h"
@@ -33,6 +35,7 @@
 #define	DIV_VIDA            4
 #define NOM_ARCHIVO			"registro.log"
 #define BUFF_SIZE 			1024
+#define ARCH_SIZE			128
 
 void sigchld_handler();
 void  sigalrm_handler();
@@ -42,6 +45,7 @@ void int_signals();
 void validar_arg(int argc, char const *argv[]);
 pid_t crear_hijo(int);
 void relanzar_procesos(void);
+void time_stamp(unsigned long seg_convertir, int hora,int minutos,int segundos);
 
 /*Varibales globales*/
 
